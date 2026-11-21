@@ -1,0 +1,450 @@
+/* ============ 全局样式 ============ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ============ 敦煌主题 CSS 变量（参考 Dunhuang Aura 设计系统：矿物色 + 沙金 + 赭石） ============ */
+:root {
+  /* ===== 主色：朱砂红 + 石青 + 金箔 ===== */
+  --dh-primary: #a62a20;
+  --dh-primary-light: #c94a3a;
+  --dh-secondary: #1a6b5c;
+  --dh-secondary-light: #2a8a7a;
+  --dh-gold: #c9a84c;
+  --dh-gold-light: #e8d5a3;
+  --dh-cream: #f5f0e6;
+  --dh-ink: #2c1810;
+  --dh-border: #d4c5a9;
+
+  /* ===== 敦煌矿物色板（取色自莫高窟壁画：石青/石绿/朱砂/土黄/赭石/青金石/孔雀蓝/密陀僧/雌黄/铜绿/茶褐） ===== */
+  --dh-azurite: #1685a9;        /* 石青 - 蓝铜矿，深邃冷色主调 */
+  --dh-malachite: #2c9678;      /* 石绿 - 孔雀石，青绿山水 */
+  --dh-cinnabar: #c13a2a;       /* 朱砂 - 硫化汞，正统红（降饱和适配UI） */
+  --dh-cinnabar-bright: #e8523a;/* 朱砂亮 */
+  --dh-earth-yellow: #c89a2e;   /* 土黄 - 壁画底色基调 */
+  --dh-ochre: #955539;          /* 赭石 - 赤铁矿，轮廓与阴影 */
+  --dh-lapis: #1c2c5b;          /* 青金石 - 珍贵深蓝，佛陀发髻 */
+  --dh-peacock: #0eb83a;        /* 孔雀蓝 - 飞天飘带 */
+  --dh-massicot: #fbb929;       /* 密陀僧 - 暖橙黄，光环装饰 */
+  --dh-orpiment: #ffc90c;       /* 雌黄 - 明亮正黄，点缀 */
+  --dh-vermilion: #d94028;      /* 大红 - 唐代服饰，盛世繁华 */
+  --dh-bronze-green: #5fae9c;   /* 铜绿 - 岁月沧桑 */
+  --dh-tea-brown: #5d3f23;      /* 茶褐 - 暗部背景 */
+  --dh-shell-white: #e2d8cd;    /* 蛤粉 - 温润柔和白 */
+
+  /* ===== 沙金 + 壁画赭石（hermes 敦煌主题"沙金 + 壁画赭石"丝路方案） ===== */
+  --dh-sand: #d2a56d;
+  --dh-sand-light: #e8cfa8;
+  --dh-ochre-2: #b3542e;
+  --dh-ochre-light: #d4885f;
+
+  /* ===== 功能色映射 ===== */
+  --dh-bg: #f5f0e6;
+  --dh-card-bg: #faf7f0;
+  --dh-text: #2c1810;
+  --dh-text-light: #6b5a4a;
+  --dh-accent: #c89a2e;
+
+  /* ===== 展示字体（标题/品牌名用楷体） ===== */
+  --dh-font-display: 'STKaiti', 'KaiTi', 'Noto Serif SC', 'SimSun', serif;
+
+  /* ===== 敦煌纹样背景（CSS 绘制的藻井纹/回纹/云纹，无外部依赖） ===== */
+  --dh-pattern-caisson: radial-gradient(circle at 50% 50%, rgba(200,154,46,0.10) 0%, rgba(200,154,46,0.04) 40%, transparent 70%),
+    repeating-linear-gradient(45deg, rgba(166,42,32,0.04) 0 2px, transparent 2px 14px),
+    repeating-linear-gradient(-45deg, rgba(22,133,169,0.04) 0 2px, transparent 2px 14px);
+  --dh-pattern-cloud: radial-gradient(circle at 20% 30%, rgba(201,168,76,0.12) 0 2px, transparent 3px),
+    radial-gradient(circle at 70% 60%, rgba(166,42,32,0.10) 0 2px, transparent 3px),
+    radial-gradient(circle at 40% 80%, rgba(22,133,169,0.10) 0 2px, transparent 3px);
+  --dh-pattern-fret: repeating-linear-gradient(90deg, rgba(149,85,57,0.08) 0 1px, transparent 1px 12px),
+    repeating-linear-gradient(0deg, rgba(149,85,57,0.08) 0 1px, transparent 1px 12px);
+
+  /* ===== Element Plus 主色对齐朱砂红（全局按钮/链接/选中态） ===== */
+  --el-color-primary: #a62a20;
+  --el-color-primary-light-3: #c94a3a;
+  --el-color-primary-light-5: #d98a80;
+  --el-color-primary-light-7: #e8b5ad;
+  --el-color-primary-light-8: #f0cdc7;
+  --el-color-primary-light-9: #f9ece7;
+  --el-color-primary-dark-2: #8f221a;
+
+  /* ===== 语义色对齐敦煌矿物色：保证实心按钮白字对比度≥4.5、plain 深字对比度≥4.5 ===== */
+  /* success 石绿（原 EP #67c23a 白字仅 2.2 对比度，不可读） */
+  --el-color-success: #1a6e53;
+  --el-color-success-light-3: #155c45;
+  --el-color-success-light-5: #6fb8a0;
+  --el-color-success-light-7: #a8dcc8;
+  --el-color-success-light-8: #c3e8da;
+  --el-color-success-light-9: #e6f4ef;
+  --el-color-success-dark-2: #114a39;
+  /* warning 土黄（原 EP #e6a23c 白字仅 2.0 对比度，不可读） */
+  --el-color-warning: #7d5f1b;
+  --el-color-warning-light-3: #6b5013;
+  --el-color-warning-light-5: #c0a969;
+  --el-color-warning-light-7: #ded0a3;
+  --el-color-warning-light-8: #eae1c2;
+  --el-color-warning-light-9: #f6f1e1;
+  --el-color-warning-dark-2: #614a15;
+  /* danger 朱砂深（原 EP #f56c6c 白字仅 3.4 对比度，偏弱） */
+  --el-color-danger: #b0301f;
+  --el-color-danger-light-3: #981f10;
+  --el-color-danger-light-5: #d98d7d;
+  --el-color-danger-light-7: #e8b8ac;
+  --el-color-danger-light-8: #f0cfc7;
+  --el-color-danger-light-9: #f9ece7;
+  --el-color-danger-dark-2: #8c2016;
+  /* info 赭石（原 EP #909399 白字仅 2.9 对比度，偏弱） */
+  --el-color-info: #6b5a4a;
+  --el-color-info-light-3: #5c4d3f;
+  --el-color-info-light-5: #b3a79c;
+  --el-color-info-light-7: #d0c8c0;
+  --el-color-info-light-8: #ded8d2;
+  --el-color-info-light-9: #f1ede9;
+  --el-color-info-dark-2: #55463a;
+
+  --el-border-radius-base: 6px;
+}
+
+html, body, #app {
+  height: 100%;
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', Arial, sans-serif;
+  background-color: var(--dh-bg);
+  color: var(--dh-text);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ============ 通用布局类 ============ */
+.page-container {
+  padding: 20px;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-10 { margin-top: 10px; }
+.mt-20 { margin-top: 20px; }
+.mb-10 { margin-bottom: 10px; }
+.mb-20 { margin-bottom: 20px; }
+
+/* ============ Element Plus 敦煌主题覆盖 ============ */
+.el-card {
+  border-radius: 10px;
+  background-color: var(--dh-card-bg);
+  border: 1px solid var(--dh-border);
+  box-shadow: 0 2px 12px rgba(44, 24, 16, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+/* 卡片内部淡纹理：丝路山水壁画极淡叠加，增加质感但不干扰内容 */
+.el-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/texture/bg_silk.jpg') center / cover;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 0;
+}
+.el-card__header,
+.el-card__body {
+  position: relative;
+  z-index: 1;
+}
+.el-card__header {
+  border-bottom: 1px solid var(--dh-border);
+}
+
+/* ============ 自定义 div 卡片统一淡纹理（与 .el-card 一致，不影响内容） ============ */
+.my-booking, .about-card, .top-teacher, .repo-card, .cat-card {
+  position: relative;
+  overflow: hidden;
+  z-index: 0; /* 创建堆叠上下文，使纹理层(::before z-index:-1)位于背景之上、内容之下 */
+}
+.my-booking::before, .about-card::before, .top-teacher::before, .repo-card::before, .cat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/texture/bg_silk.jpg') center / cover;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.el-table {
+  font-size: 14px;
+  color: var(--dh-text);
+  --el-table-header-bg-color: #f1e9d8;
+  --el-table-header-text-color: #2c1810;
+  --el-table-border-color: #e4d9c3;
+  --el-table-row-hover-bg-color: #f7f1e3;
+}
+.el-table th.el-table__cell {
+  font-weight: 600;
+}
+
+/* 按钮/输入框统一米纸描边质感 */
+.el-button:not(.el-button--primary):not(.el-button--danger):not(.el-button--success):not(.el-button--warning):not(.el-button--info) {
+  --el-button-border-color: var(--dh-border);
+  --el-button-hover-border-color: var(--dh-gold);
+  --el-button-hover-text-color: var(--dh-primary);
+}
+.el-input__wrapper {
+  border-radius: 6px;
+}
+.el-dialog {
+  border-radius: 12px;
+  overflow: hidden;
+}
+.el-dialog__header {
+  border-bottom: 1px solid var(--dh-border);
+  margin-right: 0;
+  padding-bottom: 14px;
+}
+.el-dialog__title {
+  font-family: var(--dh-font-display);
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* ============ Element Plus 组件敦煌色补充覆盖 ============ */
+/* 标签：info 用赭石，success 用石绿，warning 用土黄，danger 用朱砂（文字统一取深色保证可读） */
+.el-tag--info {
+  background: var(--dh-sand-light, #e8cfa8);
+  border-color: var(--dh-sand, #d2a56d);
+  color: #6b4020;
+}
+.el-tag--success {
+  background: rgba(26, 110, 83, 0.10);
+  border-color: rgba(26, 110, 83, 0.45);
+  color: #1a6e53;
+}
+.el-tag--warning {
+  background: rgba(125, 95, 27, 0.10);
+  border-color: rgba(125, 95, 27, 0.45);
+  color: #7d5f1b;
+}
+.el-tag--danger {
+  background: rgba(176, 48, 31, 0.10);
+  border-color: rgba(176, 48, 31, 0.45);
+  color: #b0301f;
+}
+.el-tag--primary {
+  background: rgba(166, 42, 32, 0.1);
+  border-color: var(--dh-primary, #a62a20);
+  color: #8f221a;
+}
+
+/* 分页：活跃页朱砂红 */
+.el-pagination {
+  --el-pagination-button-bg-color: var(--dh-card-bg, #faf7f0);
+  --el-pagination-hover-color: var(--dh-primary, #a62a20);
+}
+.el-pagination .el-pager li.is-active {
+  background: var(--dh-primary, #a62a20) !important;
+  color: #fff !important;
+}
+
+/* 单选按钮组：选中态朱砂红 */
+.el-radio-button__original-radio:checked + .el-radio-button__inner {
+  background: var(--dh-primary, #a62a20);
+  border-color: var(--dh-primary, #a62a20);
+  box-shadow: -1px 0 0 0 var(--dh-primary, #a62a20);
+}
+
+/* 复选框：选中态朱砂红 */
+.el-checkbox__input.is-checked .el-checkbox__inner {
+  background: var(--dh-primary, #a62a20);
+  border-color: var(--dh-primary, #a62a20);
+}
+
+/* 开关：开启态朱砂红 */
+.el-switch.is-checked .el-switch__core {
+  background: var(--dh-primary, #a62a20);
+  border-color: var(--dh-primary, #a62a20);
+}
+
+/* 下拉菜单 */
+.el-select-dropdown__item.selected {
+  color: var(--dh-primary, #a62a20);
+  font-weight: 600;
+}
+
+/* 日期选择器 */
+.el-date-table td.current:not(.disabled) span {
+  background: var(--dh-primary, #a62a20);
+}
+
+/* 文字选中：朱砂底金字 */
+::selection {
+  background: var(--dh-primary);
+  color: var(--dh-gold-light);
+}
+
+/* 滚动条：沙金细条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--dh-sand);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--dh-gold);
+}
+
+/* 登录页等居中卡片 */
+.center-card {
+  width: 400px;
+  margin: 0 auto;
+}
+
+/* ============ 敦煌纹样背景工具类 ============ */
+.dh-bg-caisson { background-image: var(--dh-pattern-caisson); }
+.dh-bg-cloud   { background-image: var(--dh-pattern-cloud); background-size: 120px 120px; }
+.dh-bg-fret    { background-image: var(--dh-pattern-fret); }
+
+/* 米纸肌理底（叠加在米白背景上的细微颗粒） */
+.dh-paper {
+  background-color: var(--dh-cream);
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(149,85,57,0.03) 0 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, rgba(200,154,46,0.03) 0 1px, transparent 1px);
+  background-size: 6px 6px, 10px 10px;
+}
+
+/* ============ 敦煌装饰卡片（朱砂金边 + 角花，用于核心模块） ============ */
+.dh-card-ornate {
+  position: relative;
+  background: var(--dh-card-bg);
+  border: 1px solid var(--dh-border);
+  border-radius: 10px;
+  box-shadow: 0 2px 14px rgba(92, 63, 35, 0.08);
+}
+.dh-card-ornate::before,
+.dh-card-ornate::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--dh-gold);
+  pointer-events: none;
+}
+.dh-card-ornate::before { top: 6px; left: 6px; border-right: none; border-bottom: none; }
+.dh-card-ornate::after  { bottom: 6px; right: 6px; border-left: none; border-top: none; }
+
+/* ============ 敦煌分隔线（朱砂飘带 + 金珠） ============ */
+.dh-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: var(--dh-ochre);
+}
+.dh-divider::before,
+.dh-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--dh-gold), transparent);
+}
+.dh-divider .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dh-gold);
+  box-shadow: 0 0 0 2px rgba(200,154,46,0.25);
+}
+
+/* ============ 敦煌壁画纹理底（米白罩层 + 壁画隐约可见，用于空白区域背景） ============ */
+/* 丝路山水纹理：米黄底最贴近内容区，罩层 90% 使纹理隐约可见 */
+.dh-texture-silk {
+  background:
+    linear-gradient(rgba(245, 240, 230, 0.90), rgba(245, 240, 230, 0.90)),
+    url('/texture/bg_silk.jpg') center / cover fixed no-repeat;
+  background-color: var(--dh-cream, #f5f0e6);
+}
+/* 金线山水纹理：用于门户区块等强调区，罩层 88% */
+.dh-texture-gold {
+  background:
+    linear-gradient(rgba(245, 240, 230, 0.88), rgba(245, 240, 230, 0.88)),
+    url('/texture/bg_gold.jpg') center / cover fixed no-repeat;
+  background-color: var(--dh-cream, #f5f0e6);
+}
+/* 飞天深色纹理：用于深色区（如登录页、页脚），罩层 55% 保留壁画质感 */
+.dh-texture-feitian {
+  background:
+    linear-gradient(rgba(44, 24, 16, 0.55), rgba(44, 24, 16, 0.55)),
+    url('/texture/bg_feitian.jpg') center / cover no-repeat;
+  background-color: var(--dh-tea-brown, #5d3f23);
+}
+
+/* ============ 朱砂印章风格标签 ============ */
+.dh-seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 10px;
+  background: var(--dh-cinnabar);
+  color: var(--dh-shell-white);
+  font-family: var(--dh-font-display);
+  font-weight: 700;
+  letter-spacing: 2px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25);
+}
+
+/* ============ 矿物渐变文字（用于标题） ============ */
+.dh-gradient-text {
+  background: linear-gradient(135deg, var(--dh-cinnabar) 0%, var(--dh-earth-yellow) 50%, var(--dh-azurite) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ============ 敦煌主按钮增强（朱砂底 + 金描边 + 悬浮微抬升） ============ */
+/* 仅实心主按钮：plain / text / link 变体保持透明底，避免红底红字不可读 */
+.el-button--primary:not(.is-plain):not(.is-text):not(.is-link) {
+  background: linear-gradient(135deg, var(--dh-primary) 0%, var(--dh-cinnabar) 100%);
+  border-color: var(--dh-primary);
+  box-shadow: 0 2px 6px rgba(166, 42, 32, 0.25);
+  transition: all 0.2s ease;
+}
+.el-button--primary:not(.is-plain):not(.is-text):not(.is-link):hover {
+  background: linear-gradient(135deg, var(--dh-cinnabar-bright) 0%, var(--dh-primary-light) 100%);
+  border-color: var(--dh-cinnabar-bright);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(166, 42, 32, 0.35);
+}
+/* plain 主按钮：浅朱砂底 + 朱砂字，保证对比度（禁用态交回 Element Plus） */
+.el-button--primary.is-plain:not(.is-disabled):not(.is-loading) {
+  --el-button-bg-color: rgba(193, 58, 42, 0.08);
+  --el-button-text-color: var(--dh-primary);
+  --el-button-border-color: rgba(193, 58, 42, 0.45);
+  --el-button-hover-bg-color: var(--dh-primary);
+  --el-button-hover-text-color: #fff;
+  --el-button-hover-border-color: var(--dh-primary);
+  color: var(--dh-primary);
+}
+
+/* ============ 页级通用：内容区底色统一为米纸 ============ */
+.page-container {
+  background-color: var(--dh-bg);
+  min-height: 100%;
+}

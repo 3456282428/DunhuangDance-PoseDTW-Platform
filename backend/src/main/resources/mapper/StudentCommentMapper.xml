@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.StudentCommentMapper">
+    <resultMap id="BaseResultMap" type="com.art.entity.StudentComment">
+        <id property="commentId" column="comment_id"/>
+        <result property="studentId" column="student_id"/>
+        <result property="classId" column="class_id"/>
+        <result property="teacherId" column="teacher_id"/>
+        <result property="content" column="content"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="commentId">INSERT INTO student_comment(student_id,class_id,teacher_id,content,create_time) VALUES(#{studentId},#{classId},#{teacherId},#{content},#{createTime})</insert>
+    <select id="selectByStudent" resultMap="BaseResultMap">SELECT * FROM student_comment <where><if test="studentId != null"> AND student_id=#{studentId}</if><if test="classId != null"> AND class_id=#{classId}</if></where> ORDER BY create_time DESC</select>
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.KbOperationLogMapper">
+    <resultMap id="BaseResultMap" type="com.art.entity.KbOperationLog">
+        <id property="logId" column="log_id"/>
+        <result property="kbScope" column="kb_scope"/>
+        <result property="kbId" column="kb_id"/>
+        <result property="opType" column="op_type"/>
+        <result property="opUserId" column="op_user_id"/>
+        <result property="opUsername" column="op_username"/>
+        <result property="opDetail" column="op_detail"/>
+        <result property="opTime" column="op_time"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="logId">
+        INSERT INTO kb_operation_log(kb_scope,kb_id,op_type,op_user_id,op_username,op_detail,op_time)
+        VALUES(#{kbScope},#{kbId},#{opType},#{opUserId},#{opUsername},#{opDetail},#{opTime})
+    </insert>
+
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT * FROM kb_operation_log
+        <where>
+            <if test="kbScope != null and kbScope != ''">AND kb_scope = #{kbScope}</if>
+            <if test="opType != null and opType != ''">AND op_type = #{opType}</if>
+        </where>
+        ORDER BY op_time DESC, log_id DESC
+    </select>
+</mapper>

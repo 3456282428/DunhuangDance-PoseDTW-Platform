@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.AiInvokeLogMapper">
+    <resultMap id="BaseResultMap" type="com.art.entity.AiInvokeLog">
+        <id property="invokeId" column="invoke_id"/>
+        <result property="callerScope" column="caller_scope"/>
+        <result property="callerUserId" column="caller_user_id"/>
+        <result property="question" column="question"/>
+        <result property="kbScope" column="kb_scope"/>
+        <result property="hitCount" column="hit_count"/>
+        <result property="answer" column="answer"/>
+        <result property="invokeStatus" column="invoke_status"/>
+        <result property="errorMsg" column="error_msg"/>
+        <result property="invokeTime" column="invoke_time"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="invokeId">
+        INSERT INTO ai_invoke_log(caller_scope,caller_user_id,question,kb_scope,hit_count,answer,invoke_status,error_msg,invoke_time)
+        VALUES(#{callerScope},#{callerUserId},#{question},#{kbScope},#{hitCount},#{answer},#{invokeStatus},#{errorMsg},#{invokeTime})
+    </insert>
+
+    <select id="selectAll" resultMap="BaseResultMap">SELECT * FROM ai_invoke_log ORDER BY invoke_time DESC, invoke_id DESC</select>
+
+    <update id="updateResult">
+        UPDATE ai_invoke_log SET answer=#{answer}, invoke_status=#{invokeStatus}, error_msg=#{errorMsg}
+        WHERE invoke_id=#{invokeId}
+    </update>
+</mapper>

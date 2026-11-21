@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.MessageMapper">
+    <resultMap id="BaseResultMap" type="com.art.entity.Message">
+        <id property="messageId" column="message_id"/>
+        <result property="receiverUserId" column="receiver_user_id"/>
+        <result property="msgType" column="msg_type"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="bizType" column="biz_type"/>
+        <result property="bizId" column="biz_id"/>
+        <result property="isRead" column="is_read"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="messageId">
+        INSERT INTO message(receiver_user_id,msg_type,title,content,biz_type,biz_id,is_read,create_time)
+        VALUES(#{receiverUserId},#{msgType},#{title},#{content},#{bizType},#{bizId},
+               COALESCE(#{isRead},0),COALESCE(#{createTime},NOW()))
+    </insert>
+
+    <select id="selectByReceiver" resultMap="BaseResultMap">
+        SELECT * FROM message WHERE receiver_user_id=#{receiverUserId} ORDER BY create_time DESC LIMIT 100
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM message ORDER BY message_id DESC
+    </select>
+
+    <select id="countUnread" resultType="int">
+        SELECT COUNT(*) FROM message WHERE receiver_user_id=#{receiverUserId} AND is_read=0
+    </select>
+
+    <update id="markRead">
+        UPDATE message SET is_read=1 WHERE message_id=#{messageId}
+        <if test="receiverUserId != null"> AND receiver_user_id=#{receiverUserId}</if>
+    </update>
+
+    <update id="markAllRead">
+        UPDATE message SET is_read=1 WHERE receiver_user_id=#{receiverUserId} AND is_read=0
+    </update>
+</mapper>

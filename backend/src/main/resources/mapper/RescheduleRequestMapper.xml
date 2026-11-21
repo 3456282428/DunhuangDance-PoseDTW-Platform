@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.RescheduleRequestMapper">
+    <resultMap id="BaseResultMap" type="com.art.entity.RescheduleRequest">
+        <id property="requestId" column="request_id"/>
+        <result property="scheduleId" column="schedule_id"/>
+        <result property="requestType" column="request_type"/>
+        <result property="targetScheduleId" column="target_schedule_id"/>
+        <result property="newDate" column="new_date"/>
+        <result property="newStartTime" column="new_start_time"/>
+        <result property="newEndTime" column="new_end_time"/>
+        <result property="reason" column="reason"/>
+        <result property="status" column="status"/>
+        <result property="applyTime" column="apply_time"/>
+        <result property="handleTime" column="handle_time"/>
+        <result property="handleRemark" column="handle_remark"/>
+        <result property="handlerId" column="handler_id"/>
+    </resultMap>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="requestId">
+        INSERT INTO reschedule_request(schedule_id,request_type,target_schedule_id,new_date,new_start_time,new_end_time,reason,status,apply_time)
+        VALUES(#{scheduleId},#{requestType},#{targetScheduleId},#{newDate},#{newStartTime},#{newEndTime},#{reason},#{status},#{applyTime})
+    </insert>
+    <select id="selectById" resultMap="BaseResultMap">SELECT * FROM reschedule_request WHERE request_id=#{requestId}</select>
+    <update id="update">
+        UPDATE reschedule_request
+        SET status=#{status},
+            handle_time=#{handleTime},
+            handle_remark=#{handleRemark},
+            handler_id=#{handlerId}
+        WHERE request_id=#{requestId}
+    </update>
+    <select id="selectByScheduleId" resultMap="BaseResultMap">SELECT * FROM reschedule_request WHERE schedule_id=#{scheduleId} ORDER BY apply_time DESC</select>
+    <select id="selectAll" resultMap="BaseResultMap">SELECT * FROM reschedule_request ORDER BY apply_time DESC</select>
+</mapper>

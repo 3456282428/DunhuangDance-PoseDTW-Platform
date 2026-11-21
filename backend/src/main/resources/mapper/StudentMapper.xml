@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.StudentMapper">
+
+    <resultMap id="BaseResultMap" type="com.art.entity.Student">
+        <id property="studentId" column="student_id"/>
+        <result property="studentNo" column="student_no"/>
+        <result property="userId" column="user_id"/>
+        <result property="name" column="name"/>
+        <result property="gender" column="gender"/>
+        <result property="birthDate" column="birth_date"/>
+        <result property="parentPhone" column="parent_phone"/>
+        <result property="email" column="email"/>
+        <result property="enrollDate" column="enroll_date"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM student WHERE status = 1
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM student WHERE student_id = #{studentId}
+    </select>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT * FROM student WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="studentId">
+        INSERT INTO student (student_no, user_id, name, gender, birth_date, parent_phone, enroll_date, status)
+        VALUES (#{studentNo}, #{userId}, #{name}, #{gender}, #{birthDate}, #{parentPhone}, #{enrollDate}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE student
+        SET student_no = #{studentNo},
+            user_id = #{userId},
+            name = #{name},
+            gender = #{gender},
+            birth_date = #{birthDate},
+            parent_phone = #{parentPhone},
+            email = #{email},
+            enroll_date = #{enrollDate},
+            status = #{status}
+        WHERE student_id = #{studentId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM student WHERE student_id = #{studentId}
+    </delete>
+
+    <select id="selectByStudentNo" resultMap="BaseResultMap">
+        SELECT * FROM student WHERE student_no=#{studentNo} LIMIT 1
+    </select>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT * FROM student
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (name LIKE CONCAT('%', #{keyword}, '%')
+                     OR student_no LIKE CONCAT('%', #{keyword}, '%')
+                     OR parent_phone LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY student_no
+    </select>
+</mapper>

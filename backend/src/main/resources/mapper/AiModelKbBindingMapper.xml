@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.AiModelKbBindingMapper">
+    <resultMap id="BaseResultMap" type="com.art.entity.AiModelKbBinding">
+        <id property="bindingId" column="binding_id"/>
+        <result property="modelId" column="model_id"/>
+        <result property="kbScope" column="kb_scope"/>
+        <result property="kbCategory" column="kb_category"/>
+        <result property="priority" column="priority"/>
+        <result property="enabled" column="enabled"/>
+        <result property="createTime" column="create_time"/>
+        <result property="modelName" column="model_name"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT b.*, m.model_name FROM ai_model_kb_binding b LEFT JOIN ai_model m ON m.model_id = b.model_id
+        ORDER BY b.priority DESC, b.binding_id DESC
+    </select>
+
+    <select id="selectEnabledByModel" resultMap="BaseResultMap">
+        SELECT b.*, m.model_name FROM ai_model_kb_binding b LEFT JOIN ai_model m ON m.model_id = b.model_id
+        WHERE b.model_id = #{modelId} AND b.enabled = 1
+        ORDER BY b.priority DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="bindingId">
+        INSERT INTO ai_model_kb_binding(model_id,kb_scope,kb_category,priority,enabled,create_time)
+        VALUES(#{modelId},#{kbScope},#{kbCategory},#{priority},#{enabled},#{createTime})
+    </insert>
+
+    <update id="updateEnabled">UPDATE ai_model_kb_binding SET enabled=#{enabled} WHERE binding_id=#{bindingId}</update>
+
+    <delete id="deleteById">DELETE FROM ai_model_kb_binding WHERE binding_id=#{bindingId}</delete>
+
+    <delete id="deleteByModelId">DELETE FROM ai_model_kb_binding WHERE model_id=#{modelId}</delete>
+</mapper>

@@ -1,0 +1,64 @@
+# =====================================================
+# 舞韵敦煌 - 主配置文件
+# 通用配置 + 默认激活 dev 环境
+# 敏感项统一通过环境变量注入，仓库中不保存真实密钥
+# =====================================================
+
+# 默认激活开发环境
+spring:
+  profiles:
+    active: dev
+
+  # 文件上传大小限制（支持作业图片/视频/PDF，标准动作视频可达数百MB）
+  servlet:
+    multipart:
+      max-file-size: 1024MB
+      max-request-size: 1024MB
+
+  # Jackson 全局配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+# 服务器端口
+server:
+  port: 8080
+
+# MyBatis 配置
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.art.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 开发时打印SQL，生产可移除
+
+# JWT 配置
+# 正式环境必须通过环境变量 JWT_SECRET 注入随机密钥
+jwt:
+  secret: ${JWT_SECRET:dev-only-placeholder-jwt-secret-please-change}
+  expiration: 86400000   # 过期时间（毫秒），24小时
+
+# 分页插件配置（PageHelper）
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+
+# 舞蹈AI智能评分服务（Python FastAPI）
+# 默认连接本机评分服务：先在 dance 目录启动 python api_server.py
+# 如需改用远程评分服务器，将 url 改为对应地址，并填写 ssh-target 以支持自动拉起
+dance:
+  api:
+    url: ${DANCE_API_URL:http://127.0.0.1:8000}
+    timeout-seconds: 1800
+    ssh-target: ""
+    # 远程拉起评分服务的命令，按部署环境自行修改
+    ssh-start-command: "bash ~/dance/start_dance_api.sh"
+
+# 技术可视化仪表盘 - 开源组件平台（GitHub / Gitee）对接
+# github-token 可选：配置后提升 GitHub API 配额（未配置走匿名限流 60次/小时）
+dashboard:
+  opensource:
+    github-token: ""
+    enabled: true
+    timeout-seconds: 8

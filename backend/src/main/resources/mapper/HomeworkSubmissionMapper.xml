@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.HomeworkSubmissionMapper">
+    <resultMap id="BaseResultMap" type="com.art.entity.HomeworkSubmission">
+        <id property="submissionId" column="submission_id"/>
+        <result property="homeworkId" column="homework_id"/>
+        <result property="studentId" column="student_id"/>
+        <result property="content" column="content"/>
+        <result property="attachmentUrl" column="attachment_url"/>
+        <result property="attachmentName" column="attachment_name"/>
+        <result property="submitTime" column="submit_time"/>
+        <result property="score" column="score"/>
+        <result property="teacherComment" column="teacher_comment"/>
+        <result property="status" column="status"/>
+        <result property="aiScore" column="ai_score"/>
+        <result property="aiReport" column="ai_report"/>
+        <result property="aiStatus" column="ai_status"/>
+        <result property="aiScoredAt" column="ai_scored_at"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">SELECT * FROM homework_submission WHERE submission_id=#{submissionId}</select>
+
+    <select id="selectByHomeworkAndStudent" resultMap="BaseResultMap">
+        SELECT * FROM homework_submission WHERE homework_id=#{homeworkId} AND student_id=#{studentId} LIMIT 1
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="submissionId">
+        INSERT INTO homework_submission(homework_id, student_id, content, attachment_url, attachment_name, submit_time, score, teacher_comment, status, ai_score, ai_report, ai_status, ai_scored_at)
+        VALUES(#{homeworkId}, #{studentId}, #{content}, #{attachmentUrl}, #{attachmentName}, #{submitTime}, #{score}, #{teacherComment}, #{status}, #{aiScore}, #{aiReport}, #{aiStatus}, #{aiScoredAt})
+    </insert>
+
+    <update id="update">
+        UPDATE homework_submission
+        SET homework_id=#{homeworkId}, student_id=#{studentId}, content=#{content},
+            attachment_url=#{attachmentUrl}, attachment_name=#{attachmentName},
+            submit_time=#{submitTime}, score=#{score}, teacher_comment=#{teacherComment}, status=#{status}
+        WHERE submission_id=#{submissionId}
+    </update>
+
+    <update id="updateAiFields">
+        UPDATE homework_submission
+        SET ai_score=#{aiScore}, ai_report=#{aiReport}, ai_status=#{aiStatus}, ai_scored_at=#{aiScoredAt}
+        WHERE submission_id=#{submissionId}
+    </update>
+
+    <select id="selectByHomeworkId" resultMap="BaseResultMap">SELECT * FROM homework_submission WHERE homework_id=#{homeworkId} ORDER BY submission_id</select>
+
+    <select id="selectByStudentId" resultMap="BaseResultMap">SELECT * FROM homework_submission WHERE student_id=#{studentId}</select>
+
+    <select id="selectByStatus" resultMap="BaseResultMap">SELECT * FROM homework_submission WHERE status=#{status}</select>
+
+    <select id="selectAll" resultMap="BaseResultMap">SELECT * FROM homework_submission ORDER BY submission_id</select>
+
+    <select id="countByClassAndStudent" resultType="int">
+        SELECT COUNT(*) FROM homework_submission s JOIN homework h ON h.homework_id = s.homework_id
+        WHERE h.class_id=#{classId} AND s.student_id=#{studentId}
+    </select>
+</mapper>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.SystemConfigMapper">
+    <resultMap id="BaseResultMap" type="com.art.entity.SystemConfig">
+        <id property="configId" column="config_id"/>
+        <result property="configKey" column="config_key"/>
+        <result property="configValue" column="config_value"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+    <select id="selectByKey" resultMap="BaseResultMap">SELECT * FROM system_config WHERE config_key=#{configKey}</select>
+    <select id="selectAll" resultMap="BaseResultMap">SELECT * FROM system_config ORDER BY config_id</select>
+    <insert id="upsert">
+        INSERT INTO system_config(config_key, config_value) VALUES(#{configKey}, #{configValue})
+        ON DUPLICATE KEY UPDATE config_value=#{configValue}
+    </insert>
+</mapper>

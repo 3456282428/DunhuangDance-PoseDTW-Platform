@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.AgentLogMapper">
+    <resultMap id="BaseResultMap" type="com.art.entity.AgentLog">
+        <id property="logId" column="log_id"/>
+        <result property="sessionId" column="session_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="userMessage" column="user_message"/>
+        <result property="toolName" column="tool_name"/>
+        <result property="toolArgs" column="tool_args"/>
+        <result property="confirmed" column="confirmed"/>
+        <result property="execStatus" column="exec_status"/>
+        <result property="resultSummary" column="result_summary"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="logId">
+        INSERT INTO ai_agent_log(session_id,user_id,username,user_message,tool_name,tool_args,confirmed,exec_status,result_summary,create_time)
+        VALUES(#{sessionId},#{userId},#{username},#{userMessage},#{toolName},#{toolArgs},#{confirmed},#{execStatus},#{resultSummary},#{createTime})
+    </insert>
+
+    <select id="selectRecent" resultMap="BaseResultMap">
+        SELECT * FROM ai_agent_log ORDER BY log_id DESC LIMIT #{limit}
+    </select>
+
+    <select id="selectRecentByUser" resultMap="BaseResultMap">
+        SELECT * FROM ai_agent_log WHERE user_id = #{userId} ORDER BY log_id DESC LIMIT #{limit}
+    </select>
+</mapper>

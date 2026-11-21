@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.KbVectorMapper">
+
+    <resultMap id="BaseResultMap" type="com.art.entity.KbDocVector">
+        <id property="id" column="id"/>
+        <result property="kbScope" column="kb_scope"/>
+        <result property="kbId" column="kb_id"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="dim" column="dim"/>
+        <result property="model" column="model"/>
+        <result property="contentHash" column="content_hash"/>
+        <result property="vec" column="vec"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="BaseColumns">id, kb_scope, kb_id, owner_id, dim, model, content_hash, vec, update_time</sql>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM kb_doc_vector
+    </select>
+
+    <select id="selectByScope" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM kb_doc_vector WHERE kb_scope=#{kbScope}
+    </select>
+
+    <select id="selectByModel" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM kb_doc_vector WHERE model=#{model}
+    </select>
+
+    <insert id="upsert">
+        INSERT INTO kb_doc_vector(kb_scope, kb_id, owner_id, dim, model, content_hash, vec, update_time)
+        VALUES(#{kbScope}, #{kbId}, #{ownerId}, #{dim}, #{model}, #{contentHash}, #{vec}, NOW())
+        ON DUPLICATE KEY UPDATE owner_id=VALUES(owner_id), dim=VALUES(dim), model=VALUES(model),
+                                content_hash=VALUES(content_hash), vec=VALUES(vec), update_time=NOW()
+    </insert>
+
+    <insert id="upsertBatch">
+        INSERT INTO kb_doc_vector(kb_scope, kb_id, owner_id, dim, model, content_hash, vec, update_time)
+        VALUES
+        <foreach collection="rows" item="r" separator=",">
+            (#{r.kbScope}, #{r.kbId}, #{r.ownerId}, #{r.dim}, #{r.model}, #{r.contentHash}, #{r.vec}, NOW())
+        </foreach>
+        ON DUPLICATE KEY UPDATE owner_id=VALUES(owner_id), dim=VALUES(dim), model=VALUES(model),
+                                content_hash=VALUES(content_hash), vec=VALUES(vec), update_time=NOW()
+    </insert>
+
+    <delete id="deleteByDoc">DELETE FROM kb_doc_vector WHERE kb_scope=#{kbScope} AND kb_id=#{kbId}</delete>
+    <delete id="deleteByScope">DELETE FROM kb_doc_vector WHERE kb_scope=#{kbScope}</delete>
+    <select id="countAll" resultType="int">SELECT COUNT(*) FROM kb_doc_vector</select>
+</mapper>

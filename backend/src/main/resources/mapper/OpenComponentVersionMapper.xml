@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.OpenComponentVersionMapper">
+
+    <resultMap id="BaseResultMap" type="com.art.entity.OpenComponentVersion">
+        <id column="version_id" property="versionId"/>
+        <result column="component_id" property="componentId"/>
+        <result column="version" property="version"/>
+        <result column="release_date" property="releaseDate"/>
+        <result column="changelog" property="changelog"/>
+        <result column="is_current" property="isCurrent"/>
+        <result column="detect_source" property="detectSource"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="selectByComponent" resultMap="BaseResultMap">
+        SELECT version_id, component_id, version, release_date, changelog, is_current, detect_source, create_time
+        FROM open_component_version
+        WHERE component_id = #{componentId}
+        ORDER BY is_current DESC, release_date DESC, version_id DESC
+    </select>
+
+    <select id="countByComponentAndVersion" resultType="int">
+        SELECT COUNT(*) FROM open_component_version
+        WHERE component_id = #{componentId} AND version = #{version}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="versionId">
+        INSERT INTO open_component_version
+        (component_id, version, release_date, changelog, is_current, detect_source)
+        VALUES
+        (#{componentId}, #{version}, #{releaseDate}, #{changelog}, IFNULL(#{isCurrent}, 0), IFNULL(#{detectSource}, 'API'))
+    </insert>
+
+    <delete id="deleteAutoByComponent">
+        DELETE FROM open_component_version
+        WHERE component_id = #{componentId} AND detect_source = 'API' AND is_current = 0
+    </delete>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM open_component_version
+    </select>
+
+</mapper>

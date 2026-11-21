@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.CourseClassMapper">
+    <resultMap id="BaseResultMap" type="com.art.entity.CourseClass">
+        <id property="classId" column="class_id"/>
+        <result property="courseId" column="course_id"/>
+        <result property="className" column="class_name"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="teacherId" column="teacher_id"/>
+        <result property="classroomId" column="classroom_id"/>
+        <result property="semester" column="semester"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="totalHours" column="total_hours"/>
+        <result property="lessonDuration" column="lesson_duration"/>
+        <result property="tuition" column="tuition"/>
+        <result property="maxStudents" column="max_students"/>
+        <result property="status" column="status"/>
+        <result property="ageGroup" column="age_group"/>
+        <result property="level" column="level"/>
+        <result property="description" column="description"/>
+        <result property="courseName" column="course_name"/>
+        <result property="category" column="category"/>
+        <result property="teacherName" column="teacher_name"/>
+        <result property="classroomName" column="classroom_name"/>
+        <result property="currentStudents" column="current_students"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        class_id,course_id,class_name,category_id,teacher_id,classroom_id,semester,start_date,end_date,
+        total_hours,lesson_duration,tuition,max_students,status,age_group,level,description
+    </sql>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT cc.*, c.course_name, c.category,
+               (SELECT COUNT(*) FROM enrollment e WHERE e.class_id=cc.class_id AND e.status='在读') AS current_students
+        FROM course_class cc LEFT JOIN course c ON c.course_id=cc.course_id
+        WHERE cc.status=1 ORDER BY cc.class_id DESC
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT cc.*, c.course_name, c.category
+        FROM course_class cc LEFT JOIN course c ON c.course_id=cc.course_id
+        WHERE cc.class_id=#{classId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="classId">
+        INSERT INTO course_class(course_id,class_name,category_id,teacher_id,classroom_id,semester,start_date,end_date,
+        total_hours,lesson_duration,tuition,max_students,status,age_group,level,description)
+        VALUES(#{courseId},#{className},#{categoryId},#{teacherId},#{classroomId},#{semester},#{startDate},#{endDate},
+        #{totalHours},#{lessonDuration},#{tuition},#{maxStudents},#{status},#{ageGroup},#{level},#{description})
+    </insert>
+
+    <update id="update">
+        UPDATE course_class
+        SET course_id=#{courseId},class_name=#{className},category_id=#{categoryId},teacher_id=#{teacherId},
+            classroom_id=#{classroomId},semester=#{semester},start_date=#{startDate},end_date=#{endDate},
+            total_hours=#{totalHours},lesson_duration=#{lessonDuration},tuition=#{tuition},
+            max_students=#{maxStudents},status=#{status},age_group=#{ageGroup},level=#{level},description=#{description}
+        WHERE class_id=#{classId}
+    </update>
+
+    <delete id="deleteById">DELETE FROM course_class WHERE class_id=#{classId}</delete>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT cc.*, c.course_name, c.category,
+               (SELECT GROUP_CONCAT(DISTINCT t2.name SEPARATOR '、')
+                  FROM course_schedule cs JOIN teacher t2 ON t2.teacher_id=cs.teacher_id
+                 WHERE cs.class_id=cc.class_id AND cs.status&lt;&gt;'已取消') AS teacher_name,
+               cr.classroom_name,
+               (SELECT COUNT(*) FROM enrollment e WHERE e.class_id=cc.class_id AND e.status='在读') AS current_students
+        FROM course_class cc
+        LEFT JOIN course c ON c.course_id=cc.course_id
+        LEFT JOIN classroom cr ON cr.classroom_id=cc.classroom_id
+        <where>
+            <if test="className != null and className != ''"> AND cc.class_name LIKE CONCAT('%',#{className},'%')</if>
+            <if test="categoryId != null"> AND cc.category_id=#{categoryId}</if>
+            <if test="courseId != null"> AND cc.course_id=#{courseId}</if>
+        </where>
+        ORDER BY cc.class_id DESC
+    </select>
+</mapper>

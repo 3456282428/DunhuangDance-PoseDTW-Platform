@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.CourseScheduleMapper">
+    <resultMap id="BaseResultMap" type="com.art.entity.CourseSchedule">
+        <id property="scheduleId" column="schedule_id"/>
+        <result property="classId" column="class_id"/>
+        <result property="teacherId" column="teacher_id"/>
+        <result property="classroomId" column="classroom_id"/>
+        <result property="courseDate" column="course_date"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="hours" column="hours"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <resultMap id="VOResultMap" type="com.art.vo.CourseScheduleVO">
+        <id property="scheduleId" column="schedule_id"/>
+        <result property="classId" column="class_id"/>
+        <result property="className" column="class_name"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="teacherId" column="teacher_id"/>
+        <result property="teacherName" column="teacher_name"/>
+        <result property="classroomId" column="classroom_id"/>
+        <result property="classroomName" column="classroom_name"/>
+        <result property="courseDate" column="course_date"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="hours" column="hours"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="voJoin">
+        FROM course_schedule s
+        LEFT JOIN course_class c ON s.class_id = c.class_id
+        LEFT JOIN course_category cat ON c.category_id = cat.category_id
+        LEFT JOIN teacher t ON s.teacher_id = t.teacher_id
+        LEFT JOIN classroom r ON s.classroom_id = r.classroom_id
+    </sql>
+
+    <select id="selectByDateRange" resultMap="BaseResultMap">SELECT * FROM course_schedule WHERE course_date BETWEEN #{startDate} AND #{endDate} ORDER BY course_date,start_time</select>
+    <select id="selectByConditions" resultMap="BaseResultMap">SELECT * FROM course_schedule <where><if test="startDate != null and endDate != null"> AND course_date BETWEEN #{startDate} AND #{endDate}</if><if test="teacherId != null"> AND teacher_id=#{teacherId}</if><if test="classroomId != null"> AND classroom_id=#{classroomId}</if><if test="classId != null"> AND class_id=#{classId}</if></where> ORDER BY course_date,start_time</select>
+
+    <select id="selectVOByConditions" resultMap="VOResultMap">
+        SELECT s.*, c.class_name, cat.category_name, t.name AS teacher_name, r.classroom_name
+        <include refid="voJoin"/>
+        <where>
+            <if test="startDate != null and endDate != null"> AND s.course_date BETWEEN #{startDate} AND #{endDate}</if>
+            <if test="teacherId != null"> AND s.teacher_id=#{teacherId}</if>
+            <if test="classroomId != null"> AND s.classroom_id=#{classroomId}</if>
+            <if test="classId != null"> AND s.class_id=#{classId}</if>
+        </where>
+        ORDER BY s.course_date, s.start_time
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">SELECT * FROM course_schedule WHERE schedule_id=#{scheduleId}</select>
+    <insert id="insert" useGeneratedKeys="true" keyProperty="scheduleId">INSERT INTO course_schedule(class_id,teacher_id,classroom_id,course_date,start_time,end_time,hours,status,remark) VALUES(#{classId},#{teacherId},#{classroomId},#{courseDate},#{startTime},#{endTime},#{hours},#{status},#{remark})</insert>
+    <update id="update">UPDATE course_schedule SET class_id=#{classId},teacher_id=#{teacherId},classroom_id=#{classroomId},course_date=#{courseDate},start_time=#{startTime},end_time=#{endTime},hours=#{hours},status=#{status},remark=#{remark} WHERE schedule_id=#{scheduleId}</update>
+    <delete id="deleteById">DELETE FROM course_schedule WHERE schedule_id=#{scheduleId}</delete>
+    <select id="selectByTeacherAndDate" resultMap="BaseResultMap">SELECT * FROM course_schedule WHERE teacher_id=#{teacherId} AND course_date BETWEEN #{startDate} AND #{endDate} ORDER BY course_date,start_time</select>
+
+    <select id="countTeacherConflict" resultType="int">
+        SELECT COUNT(*) FROM course_schedule
+        WHERE teacher_id=#{teacherId} AND course_date=#{courseDate} AND status &lt;&gt; '已取消'
+        AND start_time &lt; #{endTime} AND end_time &gt; #{startTime}
+        <if test="excludeId != null"> AND schedule_id &lt;&gt; #{excludeId}</if>
+    </select>
+
+    <select id="countClassroomConflict" resultType="int">
+        SELECT COUNT(*) FROM course_schedule
+        WHERE classroom_id=#{classroomId} AND course_date=#{courseDate} AND status &lt;&gt; '已取消'
+        AND start_time &lt; #{endTime} AND end_time &gt; #{startTime}
+        <if test="excludeId != null"> AND schedule_id &lt;&gt; #{excludeId}</if>
+    </select>
+
+    <select id="countClassConflict" resultType="int">
+        SELECT COUNT(*) FROM course_schedule
+        WHERE class_id=#{classId} AND course_date=#{courseDate} AND status &lt;&gt; '已取消'
+        AND start_time &lt; #{endTime} AND end_time &gt; #{startTime}
+        <if test="excludeId != null"> AND schedule_id &lt;&gt; #{excludeId}</if>
+    </select>
+    <select id="selectOverlaps" resultMap="BaseResultMap">
+        SELECT * FROM course_schedule
+        WHERE course_date=#{courseDate} AND status &lt;&gt; '已取消'
+        AND start_time &lt; #{endTime} AND end_time &gt; #{startTime}
+        <if test="excludeId != null"> AND schedule_id &lt;&gt; #{excludeId}</if>
+        ORDER BY start_time
+    </select>
+</mapper>

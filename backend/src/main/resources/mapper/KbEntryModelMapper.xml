@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.KbEntryModelMapper">
+
+    <resultMap id="BaseResultMap" type="com.art.entity.KbEntryModel">
+        <id property="id" column="id"/>
+        <result property="kbScope" column="kb_scope"/>
+        <result property="kbId" column="kb_id"/>
+        <result property="modelId" column="model_id"/>
+        <result property="matchScore" column="match_score"/>
+        <result property="matchRule" column="match_rule"/>
+        <result property="matchTags" column="match_tags"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="BaseColumns">id, kb_scope, kb_id, model_id, match_score, match_rule, match_tags, update_time</sql>
+
+    <select id="selectByDoc" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM kb_entry_model WHERE kb_scope = #{kbScope} AND kb_id = #{kbId}
+    </select>
+
+    <select id="selectByScope" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM kb_entry_model WHERE kb_scope = #{kbScope}
+    </select>
+
+    <insert id="upsertBatch">
+        INSERT INTO kb_entry_model(kb_scope, kb_id, model_id, match_score, match_rule, match_tags)
+        VALUES
+        <foreach collection="rows" item="r" separator=",">
+            (#{r.kbScope}, #{r.kbId}, #{r.modelId}, #{r.matchScore}, #{r.matchRule}, #{r.matchTags})
+        </foreach>
+        ON DUPLICATE KEY UPDATE model_id = VALUES(model_id), match_score = VALUES(match_score),
+            match_rule = VALUES(match_rule), match_tags = VALUES(match_tags), update_time = NOW()
+    </insert>
+
+    <delete id="deleteByScopeNotIn">
+        DELETE FROM kb_entry_model WHERE kb_scope = #{kbScope}
+        <if test="aliveIds != null and aliveIds.size() > 0">
+            AND kb_id NOT IN
+            <foreach collection="aliveIds" item="i" open="(" close=")" separator=",">#{i}</foreach>
+        </if>
+    </delete>
+
+    <delete id="deleteByScope">
+        DELETE FROM kb_entry_model WHERE kb_scope = #{kbScope}
+    </delete>
+
+    <select id="countAll" resultType="int">SELECT COUNT(*) FROM kb_entry_model</select>
+</mapper>

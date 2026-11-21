@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.CourseMapper">
+    <resultMap id="BaseResultMap" type="com.art.entity.Course">
+        <id property="courseId" column="course_id"/>
+        <result property="courseNo" column="course_no"/>
+        <result property="courseName" column="course_name"/>
+        <result property="category" column="category"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="ageGroup" column="age_group"/>
+        <result property="level" column="level"/>
+        <result property="totalHours" column="total_hours"/>
+        <result property="lessonDuration" column="lesson_duration"/>
+        <result property="originalPrice" column="original_price"/>
+        <result property="price" column="price"/>
+        <result property="intro" column="intro"/>
+        <result property="status" column="status"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        course_id,course_no,course_name,category,category_id,age_group,level,total_hours,lesson_duration,
+        original_price,price,intro,status,sort_order,create_time
+    </sql>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM course
+        <where>
+            <if test="courseName != null and courseName != ''"> AND course_name LIKE CONCAT('%',#{courseName},'%')</if>
+            <if test="category != null and category != ''"> AND category=#{category}</if>
+            <if test="status != null"> AND status=#{status}</if>
+        </where>
+        ORDER BY sort_order ASC, course_id DESC
+    </select>
+
+    <select id="selectAllOnSale" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM course WHERE status=1
+        ORDER BY sort_order ASC, course_id DESC
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM course WHERE course_id=#{courseId}
+    </select>
+
+    <select id="selectByName" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM course WHERE course_name=#{courseName}
+    </select>
+
+    <select id="countClasses" resultType="int">
+        SELECT COUNT(*) FROM course_class WHERE course_id=#{courseId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="courseId">
+        INSERT INTO course(course_no,course_name,category,category_id,age_group,level,total_hours,lesson_duration,
+        original_price,price,intro,status,sort_order)
+        VALUES(#{courseNo},#{courseName},#{category},#{categoryId},#{ageGroup},#{level},#{totalHours},#{lessonDuration},
+        #{originalPrice},#{price},#{intro},#{status},#{sortOrder})
+    </insert>
+
+    <update id="update">
+        UPDATE course
+        SET course_no=#{courseNo},course_name=#{courseName},category=#{category},category_id=#{categoryId},age_group=#{ageGroup},level=#{level},
+            total_hours=#{totalHours},lesson_duration=#{lessonDuration},original_price=#{originalPrice},
+            price=#{price},intro=#{intro},status=#{status},sort_order=#{sortOrder}
+        WHERE course_id=#{courseId}
+    </update>
+
+    <delete id="deleteById">DELETE FROM course WHERE course_id=#{courseId}</delete>
+</mapper>

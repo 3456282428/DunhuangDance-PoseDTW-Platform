@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.DashboardStatsMapper">
+
+    <!-- 单表条目统计：table 由 Service 白名单校验后传入 -->
+    <select id="selectDocStat" resultType="java.util.Map">
+        SELECT COUNT(*)                                                        AS total,
+               SUM(CASE WHEN source_type LIKE 'AUTO%' THEN 1 ELSE 0 END)       AS autoCount,
+               SUM(CASE WHEN source_type = 'MANUAL' THEN 1 ELSE 0 END)         AS manualCount,
+               SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END)                     AS activeCount,
+               IFNULL(SUM(CHAR_LENGTH(IFNULL(content, '')) + CHAR_LENGTH(IFNULL(summary, ''))), 0) AS contentChars,
+               SUM(CASE WHEN file_url IS NOT NULL AND file_url &lt;&gt; '' THEN 1 ELSE 0 END) AS fileCount,
+               IFNULL(SUM(IFNULL(view_count, 0)), 0)                           AS viewTotal
+        FROM ${table}
+    </select>
+
+    <!-- 近 N 天按日新增趋势 -->
+    <select id="selectDailyTrend" resultType="java.util.Map">
+        SELECT DATE_FORMAT(create_time, '%Y-%m-%d') AS statDate,
+               COUNT(*)                             AS docCount,
+               SUM(CASE WHEN source_type LIKE 'AUTO%' THEN 1 ELSE 0 END) AS autoCount
+        FROM ${table}
+        WHERE create_time &gt;= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+        GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
+        ORDER BY statDate
+    </select>
+
+    <select id="selectSourceTypeStat" resultType="java.util.Map">
+        SELECT source_type AS name, COUNT(*) AS value
+        FROM ${table}
+        GROUP BY source_type
+        ORDER BY value DESC
+    </select>
+
+    <select id="selectCategoryStat" resultType="java.util.Map">
+        SELECT category AS name, COUNT(*) AS value
+        FROM ${table}
+        GROUP BY category
+        ORDER BY value DESC
+    </select>
+
+    <!-- 物理占用：data_length + index_length -->
+    <select id="selectTableStorage" resultType="java.util.Map">
+        SELECT TABLE_NAME                            AS tableName,
+               TABLE_ROWS                            AS tableRows,
+               IFNULL(DATA_LENGTH, 0)                AS dataLength,
+               IFNULL(INDEX_LENGTH, 0)               AS indexLength,
+               IFNULL(DATA_LENGTH, 0) + IFNULL(INDEX_LENGTH, 0) AS totalBytes
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = DATABASE()
+          AND TABLE_NAME IN
+        <foreach collection="tables" item="t" open="(" close=")" separator=",">#{t}</foreach>
+        ORDER BY totalBytes DESC
+    </select>
+
+    <select id="selectSchemaStorage" resultType="java.util.Map">
+        SELECT TABLE_SCHEMA                                       AS schemaName,
+               COUNT(*)                                           AS tableCount,
+               IFNULL(SUM(DATA_LENGTH), 0) + IFNULL(SUM(INDEX_LENGTH), 0) AS totalBytes
+        FROM information_schema.TABLES
+        WHERE TABLE_SCHEMA = #{schema}
+    </select>
+
+    <!-- 窗口内 AI 统一入口调用聚合 -->
+    <select id="selectInvokeAgg" resultType="java.util.Map">
+        SELECT COUNT(*)                                     AS callCount,
+               IFNULL(AVG(hit_count), 0)                    AS kbHitAvg,
+               SUM(CASE WHEN hit_count &gt; 0 THEN 1 ELSE 0 END) AS hitCalls,
+               SUM(CASE WHEN invoke_status = 'SUCCESS' THEN 1 ELSE 0 END) AS successCalls
+        FROM ai_invoke_log
+        WHERE invoke_time &gt;= #{since}
+    </select>
+
+    <!-- 窗口内 AI 评分表现（AI分与教师分一致度作为准确率代理指标） -->
+    <select id="selectScorePerf" resultType="java.util.Map">
+        SELECT COUNT(*)                                              AS scoredCount,
+               IFNULL(AVG(ai_score), 0)                              AS aiAvg,
+               SUM(CASE WHEN score IS NOT NULL THEN 1 ELSE 0 END)    AS gradedCount,
+               IFNULL(AVG(CASE WHEN score IS NOT NULL THEN ABS(ai_score - score) END), NULL) AS avgAbsDiff,
+               SUM(CASE WHEN ai_status = '已完成' THEN 1 ELSE 0 END) AS doneCount,
+               SUM(CASE WHEN ai_status = '失败' THEN 1 ELSE 0 END)   AS failCount
+        FROM homework_submission
+        WHERE ai_scored_at &gt;= #{since}
+    </select>
+
+    <select id="selectRecentAiReports" resultType="java.lang.String">
+        SELECT ai_report
+        FROM homework_submission
+        WHERE ai_scored_at &gt;= #{since} AND ai_report IS NOT NULL
+        ORDER BY ai_scored_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- ==================== API 调用与用量（api_access_log 真实访问留痕） ==================== -->
+
+    <insert id="insertApiAccessLog" parameterType="com.art.entity.ApiAccessLog"
+            useGeneratedKeys="true" keyProperty="logId">
+        INSERT INTO api_access_log (endpoint, method, api_group, username, role_scope, status, duration_ms)
+        VALUES (#{endpoint}, #{method}, #{apiGroup}, #{username}, #{roleScope}, #{status}, #{durationMs})
+    </insert>
+
+    <select id="selectApiUsageSummary" resultType="java.util.Map">
+        SELECT COUNT(*)                                                    AS totalCalls,
+               IFNULL(ROUND(AVG(duration_ms), 1), 0)                       AS avgDurationMs,
+               SUM(CASE WHEN status &lt; 400 THEN 1 ELSE 0 END)            AS okCalls,
+               SUM(CASE WHEN status &gt;= 400 THEN 1 ELSE 0 END)           AS failCalls,
+               COUNT(DISTINCT endpoint)                                    AS endpointCount,
+               COUNT(DISTINCT username)                                    AS userCount,
+               SUM(CASE WHEN DATE(access_time) = CURDATE() THEN 1 ELSE 0 END) AS todayCalls
+        FROM api_access_log
+        WHERE access_time &gt;= #{since}
+    </select>
+
+    <select id="selectApiDailyTraffic" resultType="java.util.Map">
+        SELECT DATE_FORMAT(access_time, '%Y-%m-%d')                            AS statDate,
+               COUNT(*)                                                        AS calls,
+               IFNULL(ROUND(AVG(duration_ms), 1), 0)                           AS avgDurationMs,
+               SUM(CASE WHEN status &gt;= 400 THEN 1 ELSE 0 END)              AS failCalls
+        FROM api_access_log
+        WHERE access_time &gt;= #{since}
+        GROUP BY DATE_FORMAT(access_time, '%Y-%m-%d')
+        ORDER BY statDate
+    </select>
+
+    <!-- WEEKDAY(): 0=周一 ... 6=周日；HOUR(): 0-23 -->
+    <select id="selectApiPunchCard" resultType="java.util.Map">
+        SELECT WEEKDAY(access_time) AS weekday,
+               HOUR(access_time)    AS hourOfDay,
+               COUNT(*)             AS calls
+        FROM api_access_log
+        WHERE access_time &gt;= #{since}
+        GROUP BY WEEKDAY(access_time), HOUR(access_time)
+    </select>
+
+    <select id="selectApiTopEndpoints" resultType="java.util.Map">
+        SELECT endpoint                                                     AS endpoint,
+               method                                                       AS method,
+               api_group                                                    AS apiGroup,
+               COUNT(*)                                                     AS calls,
+               IFNULL(ROUND(AVG(duration_ms), 1), 0)                        AS avgDurationMs,
+               SUM(CASE WHEN status &gt;= 400 THEN 1 ELSE 0 END)           AS failCalls
+        FROM api_access_log
+        WHERE access_time &gt;= #{since}
+        GROUP BY endpoint, method, api_group
+        ORDER BY calls DESC, avgDurationMs DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectApiGroupShare" resultType="java.util.Map">
+        SELECT api_group AS name, COUNT(*) AS value
+        FROM api_access_log
+        WHERE access_time &gt;= #{since}
+        GROUP BY api_group
+        ORDER BY value DESC
+    </select>
+
+    <select id="selectApiRoleShare" resultType="java.util.Map">
+        SELECT IFNULL(role_scope, 'ANON') AS name, COUNT(*) AS value
+        FROM api_access_log
+        WHERE access_time &gt;= #{since}
+        GROUP BY IFNULL(role_scope, 'ANON')
+        ORDER BY value DESC
+    </select>
+
+    <select id="selectInvokeScopeStat" resultType="java.util.Map">
+        SELECT caller_scope AS name, COUNT(*) AS value
+        FROM ai_invoke_log
+        WHERE invoke_time &gt;= #{since}
+        GROUP BY caller_scope
+        ORDER BY value DESC
+    </select>
+
+</mapper>

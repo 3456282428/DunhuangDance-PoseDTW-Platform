@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.ExamProjectMapper">
+    <resultMap id="BaseMap" type="com.art.entity.ExamProject">
+        <id property="projectId" column="project_id"/>
+        <result property="name" column="name"/>
+        <result property="activityType" column="activity_type"/>
+        <result property="category" column="category"/>
+        <result property="organizer" column="organizer"/>
+        <result property="signupStart" column="signup_start"/>
+        <result property="signupEnd" column="signup_end"/>
+        <result property="examDate" column="exam_date"/>
+        <result property="examStart" column="exam_start"/>
+        <result property="examEnd" column="exam_end"/>
+        <result property="examRoom" column="exam_room"/>
+        <result property="location" column="location"/>
+        <result property="fee" column="fee"/>
+        <result property="requirement" column="requirement"/>
+        <result property="awardDesc" column="award_desc"/>
+        <result property="materials" column="materials"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="projectId">
+        INSERT INTO exam_project(name,activity_type,category,organizer,signup_start,signup_end,exam_date,
+            exam_start,exam_end,exam_room,location,fee,requirement,award_desc,materials,status)
+        VALUES(#{name},#{activityType},#{category},#{organizer},#{signupStart},#{signupEnd},#{examDate},
+            #{examStart},#{examEnd},#{examRoom},#{location},#{fee},#{requirement},#{awardDesc},#{materials},#{status})
+    </insert>
+
+    <update id="update">
+        UPDATE exam_project SET name=#{name},activity_type=#{activityType},category=#{category},
+            organizer=#{organizer},signup_start=#{signupStart},signup_end=#{signupEnd},exam_date=#{examDate},
+            exam_start=#{examStart},exam_end=#{examEnd},exam_room=#{examRoom},
+            location=#{location},fee=#{fee},requirement=#{requirement},award_desc=#{awardDesc},
+            materials=#{materials},status=#{status}
+        WHERE project_id=#{projectId}
+    </update>
+
+    <delete id="deleteById">DELETE FROM exam_project WHERE project_id=#{projectId}</delete>
+
+    <select id="selectById" resultMap="BaseMap">SELECT * FROM exam_project WHERE project_id=#{projectId}</select>
+
+    <select id="selectAll" resultMap="BaseMap">SELECT * FROM exam_project ORDER BY project_id DESC</select>
+
+    <select id="selectByCondition" resultType="map">
+        SELECT p.*,
+          (SELECT COUNT(*) FROM exam_registration r WHERE r.project_id=p.project_id) AS regCount
+        FROM exam_project p
+        <where>
+            <if test="activityType!=null and activityType!=''">AND p.activity_type=#{activityType}</if>
+            <if test="category!=null and category!=''">AND p.category=#{category}</if>
+            <if test="status!=null and status!=''">AND p.status=#{status}</if>
+            <if test="keyword!=null and keyword!=''">AND p.name LIKE CONCAT('%',#{keyword},'%')</if>
+        </where>
+        ORDER BY p.project_id DESC
+    </select>
+</mapper>

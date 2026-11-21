@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.TeacherMapper">
+
+    <resultMap id="BaseResultMap" type="com.art.entity.Teacher">
+        <id property="teacherId" column="teacher_id"/>
+        <result property="teacherNo" column="teacher_no"/>
+        <result property="userId" column="user_id"/>
+        <result property="name" column="name"/>
+        <result property="gender" column="gender"/>
+        <result property="birthDate" column="birth_date"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="address" column="address"/>
+        <result property="emergencyContact" column="emergency_contact"/>
+        <result property="emergencyPhone" column="emergency_phone"/>
+        <result property="major" column="major"/>
+        <result property="education" column="education"/>
+        <result property="school" column="school"/>
+        <result property="title" column="title"/>
+        <result property="employType" column="employ_type"/>
+        <result property="teachYears" column="teach_years"/>
+        <result property="photo" column="photo"/>
+        <result property="certs" column="certs"/>
+        <result property="courseIds" column="course_ids"/>
+        <result property="hourlyRate" column="hourly_rate"/>
+        <result property="baseSalary" column="base_salary"/>
+        <result property="intro" column="intro"/>
+        <result property="hireDate" column="hire_date"/>
+        <result property="status" column="status"/>
+        <result property="classCount" column="class_count"/>
+        <result property="totalHours" column="total_hours"/>
+    </resultMap>
+
+    <sql id="Cols">
+        teacher_id,teacher_no,user_id,name,gender,birth_date,phone,email,address,
+        emergency_contact,emergency_phone,major,education,school,title,employ_type,
+        teach_years,photo,certs,hourly_rate,base_salary,intro,hire_date,status
+    </sql>
+
+    <!-- 擅长课程由 teacher_course 关联表聚合为逗号串，保持接口字段不变 -->
+    <sql id="CourseIdsSub">
+        (SELECT GROUP_CONCAT(tc.course_id ORDER BY tc.course_id SEPARATOR ',')
+           FROM teacher_course tc WHERE tc.teacher_id = t.teacher_id) AS course_ids
+    </sql>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT t.*,
+          (SELECT COUNT(*) FROM course_class cc WHERE cc.teacher_id=t.teacher_id) AS class_count,
+          <include refid="CourseIdsSub"/>
+        FROM teacher t WHERE t.status=1 ORDER BY t.teacher_no
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT t.*,
+          (SELECT GROUP_CONCAT(tc.course_id ORDER BY tc.course_id SEPARATOR ',')
+             FROM teacher_course tc WHERE tc.teacher_id = t.teacher_id) AS course_ids
+        FROM teacher t WHERE t.teacher_id=#{teacherId}
+    </select>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT t.*,
+          (SELECT GROUP_CONCAT(tc.course_id ORDER BY tc.course_id SEPARATOR ',')
+             FROM teacher_course tc WHERE tc.teacher_id = t.teacher_id) AS course_ids
+        FROM teacher t WHERE t.user_id=#{userId}
+    </select>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT t.*,
+          (SELECT COUNT(*) FROM course_class cc WHERE cc.teacher_id=t.teacher_id) AS class_count,
+          (SELECT COALESCE(SUM(cs.hours),0) FROM course_schedule cs
+             WHERE cs.teacher_id=t.teacher_id AND cs.status=1) AS total_hours,
+          <include refid="CourseIdsSub"/>
+        FROM teacher t
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (t.name LIKE CONCAT('%',#{keyword},'%')
+                  OR t.teacher_no LIKE CONCAT('%',#{keyword},'%')
+                  OR t.major LIKE CONCAT('%',#{keyword},'%'))
+            </if>
+            <if test="employType != null and employType != ''"> AND t.employ_type=#{employType}</if>
+        </where>
+        ORDER BY t.teacher_id DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="teacherId">
+        INSERT INTO teacher(teacher_no,user_id,name,gender,birth_date,phone,email,address,
+            emergency_contact,emergency_phone,major,education,school,title,employ_type,
+            teach_years,photo,certs,hourly_rate,base_salary,intro,hire_date,status)
+        VALUES(#{teacherNo},#{userId},#{name},#{gender},#{birthDate},#{phone},#{email},#{address},
+            #{emergencyContact},#{emergencyPhone},#{major},#{education},#{school},#{title},#{employType},
+            #{teachYears},#{photo},#{certs},#{hourlyRate},#{baseSalary},#{intro},#{hireDate},
+            COALESCE(#{status},1))
+    </insert>
+
+    <update id="update">
+        UPDATE teacher
+        SET teacher_no=#{teacherNo},name=#{name},gender=#{gender},birth_date=#{birthDate},
+            phone=#{phone},email=#{email},address=#{address},emergency_contact=#{emergencyContact},
+            emergency_phone=#{emergencyPhone},major=#{major},education=#{education},school=#{school},
+            title=#{title},employ_type=#{employType},teach_years=#{teachYears},photo=#{photo},
+            certs=#{certs},hourly_rate=#{hourlyRate},base_salary=#{baseSalary},
+            intro=#{intro},hire_date=#{hireDate},status=#{status}
+        WHERE teacher_id=#{teacherId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM teacher WHERE teacher_id=#{teacherId}
+    </delete>
+
+    <delete id="deleteCoursesByTeacher">
+        DELETE FROM teacher_course WHERE teacher_id=#{teacherId}
+    </delete>
+
+    <insert id="insertTeacherCourse">
+        INSERT IGNORE INTO teacher_course(teacher_id,course_id) VALUES(#{teacherId},#{courseId})
+    </insert>
+
+    <select id="completedHours" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(hours),0) FROM course_schedule
+        WHERE teacher_id=#{teacherId} AND status='已完成'
+    </select>
+
+    <select id="classHours" resultType="java.util.Map">
+        SELECT cc.class_id   AS classId,
+               cc.class_name AS className,
+               SUM(cs.hours) AS hours,
+               COUNT(*)      AS lessonCount
+        FROM course_schedule cs
+        JOIN course_class cc ON cc.class_id = cs.class_id
+        WHERE cs.teacher_id=#{teacherId} AND cs.status='已完成'
+        GROUP BY cc.class_id, cc.class_name
+        ORDER BY hours DESC
+    </select>
+</mapper>

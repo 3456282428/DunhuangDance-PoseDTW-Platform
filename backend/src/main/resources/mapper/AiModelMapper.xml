@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.AiModelMapper">
+    <resultMap id="BaseResultMap" type="com.art.entity.AiModel">
+        <id property="modelId" column="model_id"/>
+        <result property="modelName" column="model_name"/>
+        <result property="modelType" column="model_type"/>
+        <result property="provider" column="provider"/>
+        <result property="endpoint" column="endpoint"/>
+        <result property="apiKey" column="api_key"/>
+        <result property="description" column="description"/>
+        <result property="status" column="status"/>
+        <result property="currentVersion" column="current_version"/>
+        <result property="latestVersion" column="latest_version"/>
+        <result property="updateStatus" column="update_status"/>
+        <result property="lastUpgradeTime" column="last_upgrade_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="BaseResultMap">SELECT * FROM ai_model ORDER BY model_id DESC</select>
+
+    <select id="selectById" resultMap="BaseResultMap">SELECT * FROM ai_model WHERE model_id=#{modelId}</select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="modelId">
+        INSERT INTO ai_model(model_name,model_type,provider,endpoint,api_key,description,status,create_time)
+        VALUES(#{modelName},#{modelType},#{provider},#{endpoint},#{apiKey},#{description},#{status},#{createTime})
+    </insert>
+
+    <update id="update">
+        UPDATE ai_model
+        <set>
+            <if test="modelName != null">model_name=#{modelName},</if>
+            <if test="modelType != null">model_type=#{modelType},</if>
+            <if test="provider != null">provider=#{provider},</if>
+            <if test="endpoint != null">endpoint=#{endpoint},</if>
+            <if test="apiKey != null">api_key=#{apiKey},</if>
+            <if test="description != null">description=#{description},</if>
+            <if test="status != null">status=#{status},</if>
+        </set>
+        WHERE model_id=#{modelId}
+    </update>
+
+    <delete id="deleteById">DELETE FROM ai_model WHERE model_id=#{modelId}</delete>
+
+    <update id="updateVersionInfo">
+        UPDATE ai_model
+        <set>
+            <if test="currentVersion != null">current_version = #{currentVersion},</if>
+            <if test="latestVersion != null">latest_version = #{latestVersion},</if>
+            <if test="updateStatus != null">update_status = #{updateStatus},</if>
+            last_upgrade_time = NOW(),
+        </set>
+        WHERE model_id = #{modelId}
+    </update>
+</mapper>

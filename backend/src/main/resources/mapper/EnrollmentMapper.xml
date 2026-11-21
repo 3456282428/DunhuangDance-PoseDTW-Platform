@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.EnrollmentMapper">
+
+    <resultMap id="BaseResultMap" type="com.art.entity.Enrollment">
+        <id property="enrollmentId" column="enrollment_id"/>
+        <result property="studentId" column="student_id"/>
+        <result property="classId" column="class_id"/>
+        <result property="enrollDate" column="enroll_date"/>
+        <result property="tuitionAmount" column="tuition_amount"/>
+        <result property="status" column="status"/>
+        <result property="attendedCount" column="attended_count"/>
+        <result property="absentCount" column="absent_count"/>
+        <result property="totalPaid" column="total_paid"/>
+    </resultMap>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM enrollment
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM enrollment WHERE enrollment_id = #{enrollmentId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="enrollmentId">
+        INSERT INTO enrollment (student_id, class_id, enroll_date, tuition_amount,
+                                status, attended_count, absent_count, total_paid)
+        VALUES (#{studentId}, #{classId}, #{enrollDate}, #{tuitionAmount},
+                #{status}, #{attendedCount}, #{absentCount}, #{totalPaid})
+    </insert>
+
+    <update id="update">
+        UPDATE enrollment
+        SET student_id = #{studentId},
+            class_id = #{classId},
+            enroll_date = #{enrollDate},
+            tuition_amount = #{tuitionAmount},
+            status = #{status},
+            attended_count = #{attendedCount},
+            absent_count = #{absentCount},
+            total_paid = #{totalPaid}
+        WHERE enrollment_id = #{enrollmentId}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE enrollment SET status = #{status} WHERE enrollment_id = #{enrollmentId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM enrollment WHERE enrollment_id = #{enrollmentId}
+    </delete>
+
+    <select id="selectByStudentId" resultMap="BaseResultMap">
+        SELECT * FROM enrollment WHERE student_id = #{studentId} AND status = '在读'
+    </select>
+
+    <select id="selectByStudentAndClass" resultMap="BaseResultMap">
+        SELECT * FROM enrollment WHERE student_id = #{studentId} AND class_id = #{classId} LIMIT 1
+    </select>
+
+    <select id="selectByClassId" resultMap="BaseResultMap">
+        SELECT * FROM enrollment WHERE class_id = #{classId} AND status = '在读'
+    </select>
+
+    <update id="updateAttendCount">
+        UPDATE enrollment
+        SET attended_count = #{attendedCount},
+            absent_count = #{absentCount}
+        WHERE enrollment_id = #{enrollmentId}
+    </update>
+</mapper>

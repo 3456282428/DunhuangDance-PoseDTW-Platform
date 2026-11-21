@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/init.sql   # 可选，根据实际调整，如果 init.sql 使用了 MySQL 专有语法，可能需要调整为 H2 兼容版本
+  h2:
+    console:
+      enabled: true
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+
+# 禁用 JWT 相关配置（测试中可简化）
+jwt:
+  secret: testSecretKey
+  expiration: 3600000

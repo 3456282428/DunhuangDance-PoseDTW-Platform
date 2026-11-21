@@ -1,0 +1,27 @@
+# =====================================================
+# 开发环境配置
+# 数据库连接信息全部走环境变量，仓库中不保存账号密码
+# =====================================================
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/art_training?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 连接池配置（Spring Boot 2+ 默认 HikariCP）
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # 开发环境日志级别
+  logging:
+    level:
+      com.art: debug
+      org.springframework.security: debug
+
+# 开发环境可以开启一些调试选项
+debug: true

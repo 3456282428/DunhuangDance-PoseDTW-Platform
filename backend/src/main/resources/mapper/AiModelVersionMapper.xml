@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.AiModelVersionMapper">
+
+    <resultMap id="BaseResultMap" type="com.art.entity.AiModelVersion">
+        <id column="version_id" property="versionId"/>
+        <result column="model_id" property="modelId"/>
+        <result column="version" property="version"/>
+        <result column="release_date" property="releaseDate"/>
+        <result column="changelog" property="changelog"/>
+        <result column="is_current" property="isCurrent"/>
+        <result column="upgrade_status" property="upgradeStatus"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="selectByModel" resultMap="BaseResultMap">
+        SELECT version_id, model_id, version, release_date, changelog, is_current, upgrade_status, create_time
+        FROM ai_model_version
+        WHERE model_id = #{modelId}
+        ORDER BY is_current DESC, release_date DESC, version_id DESC
+    </select>
+
+    <select id="countByModelAndVersion" resultType="int">
+        SELECT COUNT(*) FROM ai_model_version WHERE model_id = #{modelId} AND version = #{version}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="versionId">
+        INSERT INTO ai_model_version
+        (model_id, version, release_date, changelog, is_current, upgrade_status)
+        VALUES
+        (#{modelId}, #{version}, #{releaseDate}, #{changelog}, IFNULL(#{isCurrent}, 0), IFNULL(#{upgradeStatus}, 'PENDING'))
+    </insert>
+
+    <update id="markCurrent">
+        UPDATE ai_model_version
+        SET is_current = CASE WHEN version = #{version} THEN 1 ELSE 0 END
+        WHERE model_id = #{modelId}
+    </update>
+
+    <delete id="deletePendingByModel">
+        DELETE FROM ai_model_version WHERE model_id = #{modelId} AND upgrade_status = 'PENDING' AND is_current = 0
+    </delete>
+
+</mapper>

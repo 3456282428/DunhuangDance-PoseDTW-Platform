@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.KbTeacherMapper">
+    <resultMap id="BaseResultMap" type="com.art.entity.KbDoc">
+        <id property="kbId" column="kb_id"/>
+        <result property="title" column="title"/>
+        <result property="category" column="category"/>
+        <result property="content" column="content"/>
+        <result property="summary" column="summary"/>
+        <result property="tags" column="tags"/>
+        <result property="sourceType" column="source_type"/>
+        <result property="sourceRef" column="source_ref"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="ownerName" column="owner_name"/>
+        <result property="fileUrl" column="file_url"/>
+        <result property="fileName" column="file_name"/>
+        <result property="status" column="status"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="BaseColumns">kb_id, title, category, content, summary, tags, source_type, source_ref, owner_id, owner_name, file_url, file_name, status, view_count, create_time, update_time</sql>
+
+    <!-- 教师可见：本人条目 + 机构级共享（owner_id IS NULL） -->
+    <sql id="OwnerFilter">
+        <if test="ownerId != null">AND (owner_id = #{ownerId} OR owner_id IS NULL)</if>
+    </sql>
+
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM kb_teacher_doc
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (title LIKE CONCAT('%',#{keyword},'%') OR content LIKE CONCAT('%',#{keyword},'%')
+                     OR summary LIKE CONCAT('%',#{keyword},'%') OR tags LIKE CONCAT('%',#{keyword},'%'))
+            </if>
+            <if test="category != null and category != ''">AND category = #{category}</if>
+            <if test="status != null">AND status = #{status}</if>
+            <include refid="OwnerFilter"/>
+        </where>
+        ORDER BY create_time DESC, kb_id DESC
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">SELECT <include refid="BaseColumns"/> FROM kb_teacher_doc WHERE kb_id=#{kbId}</select>
+
+    <select id="selectBySourceRef" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM kb_teacher_doc WHERE source_type=#{sourceType} AND source_ref=#{sourceRef}
+    </select>
+
+    <select id="selectAllActive" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM kb_teacher_doc WHERE status=1
+        <include refid="OwnerFilter"/>
+    </select>
+
+    <select id="selectByRefPrefix" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM kb_teacher_doc
+        WHERE status=1 AND (source_ref = #{ref} OR source_ref LIKE CONCAT(#{ref}, ':%'))
+        <include refid="OwnerFilter"/>
+        LIMIT 20
+    </select>
+
+    <select id="selectByKeywords" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM kb_teacher_doc
+        <where>
+            status = 1
+            <include refid="OwnerFilter"/>
+            <if test="category != null and category != ''">AND category = #{category}</if>
+            <if test="keywords != null and keywords.size() > 0">
+                AND
+                <foreach collection="keywords" item="kw" open="(" close=")" separator=" OR ">
+                    title LIKE CONCAT('%',#{kw},'%') OR summary LIKE CONCAT('%',#{kw},'%')
+                    OR tags LIKE CONCAT('%',#{kw},'%') OR content LIKE CONCAT('%',#{kw},'%')
+                </foreach>
+            </if>
+        </where>
+        ORDER BY create_time DESC LIMIT 100
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="kbId">
+        INSERT INTO kb_teacher_doc(kb_id,title,category,content,summary,tags,source_type,source_ref,owner_id,owner_name,file_url,file_name,status,view_count,create_time)
+        VALUES(#{kbId},#{title},#{category},#{content},#{summary},#{tags},#{sourceType},#{sourceRef},#{ownerId},#{ownerName},#{fileUrl},#{fileName},#{status},#{viewCount},#{createTime})
+    </insert>
+
+    <update id="update">
+        UPDATE kb_teacher_doc
+        <set>
+            <if test="title != null">title=#{title},</if>
+            <if test="category != null">category=#{category},</if>
+            <if test="content != null">content=#{content},</if>
+            <if test="summary != null">summary=#{summary},</if>
+            <if test="tags != null">tags=#{tags},</if>
+            <if test="fileUrl != null">file_url=#{fileUrl},</if>
+            <if test="fileName != null">file_name=#{fileName},</if>
+            <if test="status != null">status=#{status},</if>
+        </set>
+        WHERE kb_id=#{kbId}
+    </update>
+
+    <delete id="deleteById">DELETE FROM kb_teacher_doc WHERE kb_id=#{kbId}</delete>
+
+    <delete id="deleteAll">DELETE FROM kb_teacher_doc</delete>
+
+    <select id="countAll" resultType="int">SELECT COUNT(*) FROM kb_teacher_doc</select>
+
+    <select id="countByOwner" resultType="int">SELECT COUNT(*) FROM kb_teacher_doc WHERE owner_id=#{ownerId}</select>
+
+    <update id="increaseViewCount">UPDATE kb_teacher_doc SET view_count = view_count + 1 WHERE kb_id=#{kbId}</update>
+</mapper>

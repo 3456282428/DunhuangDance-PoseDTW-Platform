@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.PaymentMapper">
+
+    <resultMap id="BaseResultMap" type="com.art.entity.Payment">
+        <id property="paymentId" column="payment_id"/>
+        <result property="studentId" column="student_id"/>
+        <result property="classId" column="class_id"/>
+        <result property="enrollmentId" column="enrollment_id"/>
+        <result property="regId" column="reg_id"/>
+        <result property="payDate" column="pay_date"/>
+        <result property="amount" column="amount"/>
+        <result property="payType" column="pay_type"/>
+        <result property="payMethod" column="pay_method"/>
+        <result property="operatorId" column="operator_id"/>
+        <result property="remark" column="remark"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM payment WHERE payment_id = #{paymentId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="paymentId">
+        INSERT INTO payment (student_id, class_id, enrollment_id, reg_id, pay_date, amount, pay_type,
+                             pay_method, operator_id, remark, status)
+        VALUES (#{studentId}, #{classId}, #{enrollmentId}, #{regId}, #{payDate}, #{amount}, #{payType},
+                #{payMethod}, #{operatorId}, #{remark}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE payment
+        SET student_id = #{studentId},
+            class_id = #{classId},
+            enrollment_id = #{enrollmentId},
+            reg_id = #{regId},
+            pay_date = #{payDate},
+            amount = #{amount},
+            pay_type = #{payType},
+            pay_method = #{payMethod},
+            operator_id = #{operatorId},
+            remark = #{remark},
+            status = #{status},
+            refund_time = #{refundTime},
+            refund_operator_id = #{refundOperatorId}
+        WHERE payment_id = #{paymentId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM payment WHERE payment_id = #{paymentId}
+    </delete>
+
+    <select id="selectByStudentId" resultMap="BaseResultMap">
+        SELECT * FROM payment WHERE student_id = #{studentId}
+        ORDER BY pay_date DESC
+    </select>
+
+    <select id="selectByConditions" resultMap="BaseResultMap">
+        SELECT * FROM payment
+        <where>
+            <if test="studentId != null">
+                AND student_id = #{studentId}
+            </if>
+            <if test="payType != null and payType != ''">
+                AND pay_type = #{payType}
+            </if>
+            <if test="startTime != null">
+                AND pay_date &gt;= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND pay_date &lt;= #{endTime}
+            </if>
+            <if test="payMethod != null and payMethod != ''">
+                AND pay_method = #{payMethod}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY pay_date DESC
+    </select>
+</mapper>

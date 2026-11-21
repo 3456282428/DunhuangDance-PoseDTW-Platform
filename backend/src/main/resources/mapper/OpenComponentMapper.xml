@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.OpenComponentMapper">
+
+    <resultMap id="BaseResultMap" type="com.art.entity.OpenComponent">
+        <id column="component_id" property="componentId"/>
+        <result column="name" property="name"/>
+        <result column="platform" property="platform"/>
+        <result column="repo_owner" property="repoOwner"/>
+        <result column="repo_name" property="repoName"/>
+        <result column="repo_url" property="repoUrl"/>
+        <result column="category" property="category"/>
+        <result column="language" property="language"/>
+        <result column="license" property="license"/>
+        <result column="used_by_module" property="usedByModule"/>
+        <result column="current_version" property="currentVersion"/>
+        <result column="latest_version" property="latestVersion"/>
+        <result column="latest_release_date" property="latestReleaseDate"/>
+        <result column="update_status" property="updateStatus"/>
+        <result column="star_count" property="starCount"/>
+        <result column="fork_count" property="forkCount"/>
+        <result column="open_issue_count" property="openIssueCount"/>
+        <result column="description" property="description"/>
+        <result column="homepage" property="homepage"/>
+        <result column="sync_enabled" property="syncEnabled"/>
+        <result column="last_sync_time" property="lastSyncTime"/>
+        <result column="last_sync_status" property="lastSyncStatus"/>
+        <result column="last_sync_message" property="lastSyncMessage"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="BaseColumns">
+        component_id, name, platform, repo_owner, repo_name, repo_url, category, language, license,
+        used_by_module, current_version, latest_version, latest_release_date, update_status,
+        star_count, fork_count, open_issue_count, description, homepage, sync_enabled,
+        last_sync_time, last_sync_status, last_sync_message, create_time, update_time
+    </sql>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM open_component
+        <where>
+            <if test="platform != null and platform != ''">AND platform = #{platform}</if>
+            <if test="category != null and category != ''">AND category = #{category}</if>
+            <if test="updateStatus != null and updateStatus != ''">AND update_status = #{updateStatus}</if>
+            <if test="keyword != null and keyword != ''">
+                AND (name LIKE CONCAT('%', #{keyword}, '%')
+                     OR repo_url LIKE CONCAT('%', #{keyword}, '%')
+                     OR used_by_module LIKE CONCAT('%', #{keyword}, '%')
+                     OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY FIELD(update_status, 'UPDATE_AVAILABLE', 'SYNC_FAILED', 'UNKNOWN', 'UP_TO_DATE'), star_count DESC
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM open_component WHERE component_id = #{componentId}
+    </select>
+
+    <select id="selectSyncEnabled" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM open_component WHERE sync_enabled = 1 ORDER BY component_id
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="componentId">
+        INSERT INTO open_component
+        (name, platform, repo_owner, repo_name, repo_url, category, language, license, used_by_module,
+         current_version, latest_version, latest_release_date, update_status, star_count, fork_count,
+         open_issue_count, description, homepage, sync_enabled, last_sync_status)
+        VALUES
+        (#{name}, #{platform}, #{repoOwner}, #{repoName}, #{repoUrl}, #{category}, #{language}, #{license}, #{usedByModule},
+         #{currentVersion}, #{latestVersion}, #{latestReleaseDate}, IFNULL(#{updateStatus}, 'UNKNOWN'),
+         IFNULL(#{starCount}, 0), IFNULL(#{forkCount}, 0), IFNULL(#{openIssueCount}, 0),
+         #{description}, #{homepage}, IFNULL(#{syncEnabled}, 1), #{lastSyncStatus})
+    </insert>
+
+    <update id="update">
+        UPDATE open_component
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="platform != null">platform = #{platform},</if>
+            <if test="repoOwner != null">repo_owner = #{repoOwner},</if>
+            <if test="repoName != null">repo_name = #{repoName},</if>
+            <if test="repoUrl != null">repo_url = #{repoUrl},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="language != null">language = #{language},</if>
+            <if test="license != null">license = #{license},</if>
+            <if test="usedByModule != null">used_by_module = #{usedByModule},</if>
+            <if test="currentVersion != null">current_version = #{currentVersion},</if>
+            <if test="latestVersion != null">latest_version = #{latestVersion},</if>
+            <if test="updateStatus != null">update_status = #{updateStatus},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="homepage != null">homepage = #{homepage},</if>
+            <if test="syncEnabled != null">sync_enabled = #{syncEnabled},</if>
+        </set>
+        WHERE component_id = #{componentId}
+    </update>
+
+    <update id="updateSyncResult">
+        UPDATE open_component
+        SET latest_version = IFNULL(#{latestVersion}, latest_version),
+            latest_release_date = IFNULL(#{latestReleaseDate}, latest_release_date),
+            update_status = IFNULL(#{updateStatus}, update_status),
+            star_count = IFNULL(#{starCount}, star_count),
+            fork_count = IFNULL(#{forkCount}, fork_count),
+            open_issue_count = IFNULL(#{openIssueCount}, open_issue_count),
+            description = IFNULL(#{description}, description),
+            homepage = IFNULL(#{homepage}, homepage),
+            last_sync_time = NOW(),
+            last_sync_status = #{syncStatus},
+            last_sync_message = #{syncMessage}
+        WHERE component_id = #{componentId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM open_component WHERE component_id = #{componentId}
+    </delete>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM open_component
+    </select>
+
+    <select id="countByPlatform" resultType="int">
+        SELECT COUNT(*) FROM open_component WHERE platform = #{platform}
+    </select>
+
+    <select id="countByUpdateStatus" resultType="int">
+        SELECT COUNT(*) FROM open_component WHERE update_status = #{updateStatus}
+    </select>
+
+</mapper>

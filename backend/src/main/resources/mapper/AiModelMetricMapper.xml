@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.AiModelMetricMapper">
+
+    <resultMap id="BaseResultMap" type="com.art.entity.AiModelMetric">
+        <id column="metric_id" property="metricId"/>
+        <result column="model_id" property="modelId"/>
+        <result column="metric_time" property="metricTime"/>
+        <result column="latency_ms" property="latencyMs"/>
+        <result column="throughput_qps" property="throughputQps"/>
+        <result column="accuracy" property="accuracy"/>
+        <result column="success_rate" property="successRate"/>
+        <result column="call_count" property="callCount"/>
+        <result column="kb_hit_avg" property="kbHitAvg"/>
+        <result column="metric_source" property="metricSource"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="selectRecent" resultMap="BaseResultMap">
+        SELECT * FROM (
+            SELECT metric_id, model_id, metric_time, latency_ms, throughput_qps, accuracy,
+                   success_rate, call_count, kb_hit_avg, metric_source, create_time
+            FROM ai_model_metric
+            WHERE model_id = #{modelId}
+            ORDER BY metric_time DESC
+            LIMIT #{limit}
+        ) t ORDER BY t.metric_time ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="metricId">
+        INSERT INTO ai_model_metric
+        (model_id, metric_time, latency_ms, throughput_qps, accuracy, success_rate, call_count, kb_hit_avg, metric_source)
+        VALUES
+        (#{modelId}, IFNULL(#{metricTime}, NOW()), #{latencyMs}, #{throughputQps}, #{accuracy},
+         #{successRate}, IFNULL(#{callCount}, 0), #{kbHitAvg}, IFNULL(#{metricSource}, 'SAMPLE'))
+    </insert>
+
+    <delete id="deleteOlderThan">
+        DELETE FROM ai_model_metric WHERE metric_time &lt; #{time}
+    </delete>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM ai_model_metric
+    </select>
+
+</mapper>

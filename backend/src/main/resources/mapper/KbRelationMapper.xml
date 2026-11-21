@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.art.mapper.KbRelationMapper">
+
+    <resultMap id="BaseResultMap" type="com.art.entity.KbRelation">
+        <id property="relationId" column="relation_id"/>
+        <result property="srcRef" column="src_ref"/>
+        <result property="dstRef" column="dst_ref"/>
+        <result property="relType" column="rel_type"/>
+        <result property="relDimension" column="rel_dimension"/>
+        <result property="relSource" column="rel_source"/>
+        <result property="srcLabel" column="src_label"/>
+        <result property="dstLabel" column="dst_label"/>
+        <result property="weight" column="weight"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <sql id="BaseColumns">relation_id, src_ref, dst_ref, rel_type, rel_dimension, rel_source, src_label, dst_label, weight, create_time</sql>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM kb_relation
+    </select>
+
+    <select id="selectByRef" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM kb_relation WHERE src_ref=#{ref} OR dst_ref=#{ref}
+    </select>
+
+    <select id="selectByRefs" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM kb_relation
+        WHERE src_ref IN
+        <foreach collection="refs" item="r" open="(" close=")" separator=",">#{r}</foreach>
+        OR dst_ref IN
+        <foreach collection="refs" item="r" open="(" close=")" separator=",">#{r}</foreach>
+    </select>
+
+    <insert id="upsertBatch">
+        INSERT INTO kb_relation(src_ref, dst_ref, rel_type, rel_dimension, rel_source, src_label, dst_label, weight, create_time)
+        VALUES
+        <foreach collection="rows" item="r" separator=",">
+            (#{r.srcRef}, #{r.dstRef}, #{r.relType}, #{r.relDimension}, #{r.relSource}, #{r.srcLabel}, #{r.dstLabel}, #{r.weight}, NOW())
+        </foreach>
+        ON DUPLICATE KEY UPDATE src_label=VALUES(src_label), dst_label=VALUES(dst_label), weight=VALUES(weight),
+            rel_dimension=VALUES(rel_dimension), rel_source=VALUES(rel_source)
+    </insert>
+
+    <delete id="deleteAll">DELETE FROM kb_relation</delete>
+    <select id="countAll" resultType="int">SELECT COUNT(*) FROM kb_relation</select>
+
+    <!-- 关联关系数据来源：由业务表外键自动推导（跨端投影共用同一批业务引用） -->
+    <select id="selectBusinessPairs" resultType="com.art.search.RefPair">
+        SELECT CONCAT('schedule:', schedule_id) AS src_ref, CONCAT('class:', class_id) AS dst_ref, 'BELONGS_TO' AS rel_type FROM course_schedule
+        UNION ALL SELECT CONCAT('schedule:', schedule_id), CONCAT('teacher:', teacher_id), 'OF_TEACHER' FROM course_schedule
+        UNION ALL SELECT CONCAT('schedule:', schedule_id), CONCAT('classroom:', classroom_id), 'IN_ROOM' FROM course_schedule
+        UNION ALL SELECT CONCAT('class:', class_id), CONCAT('course:', course_id), 'OF_COURSE' FROM course_class
+        UNION ALL SELECT CONCAT('class:', class_id), CONCAT('teacher:', teacher_id), 'OF_TEACHER' FROM course_class WHERE teacher_id IS NOT NULL
+        UNION ALL SELECT CONCAT('class:', class_id), CONCAT('classroom:', classroom_id), 'IN_ROOM' FROM course_class WHERE classroom_id IS NOT NULL
+        UNION ALL SELECT CONCAT('class:', class_id), CONCAT('course_category:', category_id), 'OF_CATEGORY' FROM course_class WHERE category_id IS NOT NULL
+        UNION ALL SELECT CONCAT('enrollment:', enrollment_id), CONCAT('student:', student_id), 'OF_STUDENT' FROM enrollment
+        UNION ALL SELECT CONCAT('enrollment:', enrollment_id), CONCAT('class:', class_id), 'IN_CLASS' FROM enrollment
+        UNION ALL SELECT CONCAT('attendance:', attendance_id), CONCAT('schedule:', schedule_id), 'OF_SCHEDULE' FROM attendance
+        UNION ALL SELECT CONCAT('attendance:', attendance_id), CONCAT('student:', student_id), 'OF_STUDENT' FROM attendance
+        UNION ALL SELECT CONCAT('homework:', homework_id), CONCAT('class:', class_id), 'IN_CLASS' FROM homework
+        UNION ALL SELECT CONCAT('homework:', homework_id), CONCAT('schedule:', schedule_id), 'OF_SCHEDULE' FROM homework WHERE schedule_id IS NOT NULL
+        UNION ALL SELECT CONCAT('submission:', submission_id), CONCAT('homework:', homework_id), 'OF_HOMEWORK' FROM homework_submission
+        UNION ALL SELECT CONCAT('submission:', submission_id), CONCAT('student:', student_id), 'OF_STUDENT' FROM homework_submission
+        UNION ALL SELECT CONCAT('exam_reg:', reg_id), CONCAT('exam_project:', project_id), 'OF_PROJECT' FROM exam_registration
+        UNION ALL SELECT CONCAT('exam_reg:', reg_id), CONCAT('student:', student_id), 'OF_STUDENT' FROM exam_registration
+        UNION ALL SELECT CONCAT('exam_reg:', reg_id), CONCAT('class:', class_id), 'IN_CLASS' FROM exam_registration WHERE class_id IS NOT NULL
+        UNION ALL SELECT CONCAT('exam_reg:', reg_id), CONCAT('teacher:', teacher_id), 'OF_TEACHER' FROM exam_registration WHERE teacher_id IS NOT NULL
+        UNION ALL SELECT CONCAT('payment:', payment_id), CONCAT('student:', student_id), 'OF_STUDENT' FROM payment WHERE student_id IS NOT NULL
+        UNION ALL SELECT CONCAT('payment:', payment_id), CONCAT('class:', class_id), 'IN_CLASS' FROM payment WHERE class_id IS NOT NULL
+        UNION ALL SELECT CONCAT('payment:', payment_id), CONCAT('enrollment:', enrollment_id), 'BELONGS_TO' FROM payment WHERE enrollment_id IS NOT NULL
+        UNION ALL SELECT CONCAT('payment:', payment_id), CONCAT('exam_reg:', reg_id), 'OF_PROJECT' FROM payment WHERE reg_id IS NOT NULL
+    </select>
+</mapper>

@@ -1,0 +1,38 @@
+# Java / Maven
+backend/target/
+*.class
+*.jar
+*.war
+
+# Node
+frontend/node_modules/
+frontend/dist/
+npm-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+dance/output/
+dance/uploads/
+
+# 运行时产物与用户数据
+uploads/
+*.log
+*.mp4
+*.tmp
+
+# 本地配置与密钥
+.env
+.env.*
+application-local.yml
+application-local.yaml
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
